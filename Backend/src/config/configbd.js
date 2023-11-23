@@ -1,17 +1,38 @@
-const oracledb = require('oracledb');
+// configbd.js
 
-cns = {
-    user: "BD",
-    password: "3887",
-    connectString: "172.17.0.2/ORCLCDB"
+// Importa las dependencias necesarias
+const mysql = require('mysql');
+
+// Configura los datos de conexión a la base de datos
+const dbConfig = {
+  host: 'localhost',
+  user: 'root',
+  password: '0123456789',
+  database: 'ultrasound'
+};
+
+// Crea una función "Open" para abrir la conexión a la base de datos
+function Open(sql, values, isSingle) {
+  const dbConnection = mysql.createConnection(dbConfig);
+
+  return new Promise((resolve, reject) => {
+    dbConnection.connect((err) => {
+      if (err) {
+        reject(err);
+      }
+
+      dbConnection.query(sql, values, (error, results) => {
+        if (error) {
+          reject(error);
+        }
+
+        dbConnection.end(); // Cierra la conexión después de la consulta
+
+        resolve(isSingle ? results[0] : results);
+      });
+    });
+  });
 }
 
-
-async function Open(sql, binds, autoCommit) {
-    let cnn = await oracledb.getConnection(cns);
-    let result = await cnn.execute(sql, binds, { autoCommit });
-    cnn.release();
-    return result;
-}
-
-exports.Open = Open;
+// Exporta la función "Open" para su uso en otros archivos
+module.exports.Open = Open;
